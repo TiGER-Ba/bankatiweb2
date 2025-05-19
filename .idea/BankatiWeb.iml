@@ -3,4 +3,30 @@
   <component name="AdditionalModuleElements">
     <content url="file://$MODULE_DIR$" />
   </component>
+  <component name="FacetManager">
+    <facet type="web" name="Web3">
+      <configuration>
+        <descriptors>
+          <deploymentDescriptor name="web.xml" url="file://$MODULE_DIR$/BankatiWeb/.smarttomcat/BankatiWeb/conf/web.xml" />
+        </descriptors>
+        <webroots>
+          <root url="file://$MODULE_DIR$/BankatiWeb/.smarttomcat/BankatiWeb/conf" relative="/WEB-INF" />
+        </webroots>
+      </configuration>
+    </facet>
+    <facet type="web" name="Web2">
+      <configuration>
+        <descriptors>
+          <deploymentDescriptor name="web.xml" url="file://$MODULE_DIR$/.smarttomcat/BankatiWeb/conf/web.xml" />
+        </descriptors>
+        <webroots>
+          <root url="file://$MODULE_DIR$/.smarttomcat/BankatiWeb/conf" relative="/WEB-INF" />
+        </webroots>
+        <sourceRoots>
+          <root url="file://$MODULE_DIR$/BankatiWeb/src/main/java" />
+          <root url="file://$MODULE_DIR$/BankatiWeb/src/main/resources" />
+        </sourceRoots>
+      </configuration>
+    </facet>
+  </component>
 </module>

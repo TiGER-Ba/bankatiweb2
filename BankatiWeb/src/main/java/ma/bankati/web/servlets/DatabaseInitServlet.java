@@ -37,16 +37,30 @@ public class DatabaseInitServlet extends HttpServlet {
 
     private void initializeDatabase() throws Exception {
         // Read the initialization SQL script
-        InputStream is = getClass().getClassLoader().getResourceAsStream("init-db.sql");
+        // Modifier cette ligne pour corriger le chemin du script SQL
+        InputStream is = getClass().getClassLoader().getResourceAsStream("sql/init-db.sql");
         if (is == null) {
-            throw new Exception("Could not find the init-db.sql script");
+            // Try alternate locations
+            is = getClass().getClassLoader().getResourceAsStream("init-db.sql");
+            if (is == null) {
+                is = getClass().getResourceAsStream("/init-db.sql");
+            }
+            if (is == null) {
+                is = getClass().getResourceAsStream("/sql/init-db.sql");
+            }
+            if (is == null) {
+                throw new Exception("Could not find the init-db.sql script. Please ensure it exists in src/main/resources/sql/init-db.sql or src/main/resources/init-db.sql");
+            }
         }
 
+        System.out.println("Found init-db.sql script, loading...");
         String sqlScript = new BufferedReader(new InputStreamReader(is))
                 .lines().collect(Collectors.joining("\n"));
+        System.out.println("SQL script loaded successfully, length: " + sqlScript.length() + " characters");
 
         // Split the script into individual statements
         String[] statements = sqlScript.split("GO|;");
+        System.out.println("Found " + statements.length + " SQL statements to execute");
 
         // Execute each statement
         try (Connection conn = DatabaseConnection.getConnection();
@@ -56,7 +70,9 @@ public class DatabaseInitServlet extends HttpServlet {
                 sql = sql.trim();
                 if (!sql.isEmpty()) {
                     try {
+                        System.out.println("Executing SQL statement: " + sql.substring(0, Math.min(50, sql.length())) + "...");
                         stmt.executeUpdate(sql);
+                        System.out.println("SQL statement executed successfully");
                     } catch (Exception e) {
                         System.err.println("Error executing SQL statement: " + sql);
                         System.err.println("Error: " + e.getMessage());

@@ -1,3 +1,5 @@
+-- Ce script doit être placé dans le dossier src/main/resources/sql/init-db.sql
+
 -- Create tables if they don't exist
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Users]') AND type in (N'U'))
 BEGIN

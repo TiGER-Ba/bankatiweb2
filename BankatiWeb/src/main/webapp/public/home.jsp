@@ -1,5 +1,9 @@
 <%@ page import="ma.bankati.model.users.User" pageEncoding="UTF-8" %>
 <%@ page import="ma.bankati.model.data.MoneyData" %>
+<%@ page import="ma.bankati.model.data.Devise" %>
+<%@ page import="ma.bankati.model.compte.Compte" %>
+<%@ page import="ma.bankati.dao.compteDao.ICompteDao" %>
+<%@ page import="ma.bankati.service.moneyServices.MultiCurrencyService" %>
 <html>
 <head>
 	<title>Accueil Client</title>
@@ -8,11 +12,37 @@
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<%
+	<%
 	var ctx = request.getContextPath();
-	var user    = (User) session.getAttribute("connectedUser");
+	var user = (User) session.getAttribute("connectedUser");
 	var appName = (String) application.getAttribute("AppName");
-	var result  = (MoneyData) request.getAttribute("result");
+
+	// Récupérer le solde et la devise directement
+	var result = (MoneyData) request.getAttribute("result");
+	var deviseSelectionnee = (Devise) request.getAttribute("deviseSelectionnee");
+
+    // Fallback en cas de problème
+    if (result == null && user != null) {
+        // Récupérer directement depuis la base de données
+        var compteDao = (ICompteDao) application.getAttribute("compteDao");
+        if (compteDao != null) {
+            Compte compte = compteDao.findByUserId(user.getId());
+            double solde = (compte != null) ? compte.getSolde() : 0.0;
+
+            // Convertir selon la devise
+            var moneyService = (MultiCurrencyService) application.getAttribute("moneyService");
+            if (moneyService != null && deviseSelectionnee != null) {
+                result = moneyService.convertAmount(solde, deviseSelectionnee);
+            } else {
+                result = new MoneyData(solde, Devise.Dh);
+            }
+        }
+    }
+
+    // Dernière sécurité
+    if (result == null) {
+        result = new MoneyData(0.0, Devise.Dh);
+    }
 %>
 <body class="bgBlue Optima">
 
@@ -76,10 +106,10 @@
 							<div class="input-group">
 								<label class="input-group-text">Devise :</label>
 								<select name="devise" class="form-select" onchange="this.form.submit()">
-									<option value="Dh" <%= "Dh".equals(request.getAttribute("deviseSelectionnee").toString()) ? "selected" : "" %>>Dirham (DH)</option>
-									<option value="€" <%= "€".equals(request.getAttribute("deviseSelectionnee").toString()) ? "selected" : "" %>>Euro (€)</option>
-									<option value="$" <%= "$".equals(request.getAttribute("deviseSelectionnee").toString()) ? "selected" : "" %>>Dollar ($)</option>
-									<option value="£" <%= "£".equals(request.getAttribute("deviseSelectionnee").toString()) ? "selected" : "" %>>Pound (£)</option>
+									<option value="Dh" <%= "Dh".equals(deviseSelectionnee.toString()) ? "selected" : "" %>>Dirham (DH)</option>
+									<option value="€" <%= "€".equals(deviseSelectionnee.toString()) ? "selected" : "" %>>Euro (€)</option>
+									<option value="$" <%= "$".equals(deviseSelectionnee.toString()) ? "selected" : "" %>>Dollar ($)</option>
+									<option value="£" <%= "£".equals(deviseSelectionnee.toString()) ? "selected" : "" %>>Pound (£)</option>
 								</select>
 							</div>
 						</form>

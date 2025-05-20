@@ -5,13 +5,18 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import ma.bankati.dao.compteDao.ICompteDao;
+import ma.bankati.model.compte.Compte;
 import ma.bankati.model.data.Devise;
 import ma.bankati.model.data.MoneyData;
+import ma.bankati.model.users.ERole;
 import ma.bankati.model.users.User;
 import ma.bankati.service.compteService.CompteServiceImpl;
 import ma.bankati.service.compteService.ICompteService;
 import ma.bankati.service.moneyServices.IMoneyService;
 import ma.bankati.service.moneyServices.MultiCurrencyService;
+import ma.bankati.service.statsService.StatsService;
+import ma.bankati.utils.CreditCompteUtil;
 
 import java.io.IOException;
 
@@ -19,11 +24,15 @@ import java.io.IOException;
 public class HomeController extends HttpServlet
 {
     private IMoneyService service;
+    private StatsService statsService;
+    private ICompteDao compteDao;
 
     @Override
     public void init() throws ServletException {
         System.out.println("HomeController créé et initialisé");
         service = (IMoneyService) getServletContext().getAttribute("moneyService");
+        statsService = (StatsService) getServletContext().getAttribute("statsService");
+        compteDao = (ICompteDao) getServletContext().getAttribute("compteDao");
     }
 
     @Override
@@ -63,17 +72,54 @@ public class HomeController extends HttpServlet
 
         MoneyData result;
 
-        // Si le service est MultiCurrencyService, utiliser la devise sélectionnée
-        if (service instanceof MultiCurrencyService) {
-            MultiCurrencyService multiService = (MultiCurrencyService) service;
-            // Si CompteService est disponible, définir l'utilisateur actuel
-            ICompteService compteService = (ICompteService) getServletContext().getAttribute("compteService");
-            if (compteService instanceof CompteServiceImpl && user != null) {
-                ((CompteServiceImpl) compteService).setCurrentUserId(user.getId());
+        // Pour les administrateurs, nous affichons les statistiques, pas le solde
+        if (user != null && user.getRole() == ERole.ADMIN) {
+            // Ajouter les statistiques pour l'admin
+            if (statsService != null) {
+                request.setAttribute("nombreUtilisateurs", statsService.getNombreUtilisateurs());
+                request.setAttribute("nombreDemandesEnAttente", statsService.getNombreDemandesEnAttente());
+                request.setAttribute("montantTotalCreditApprouve", statsService.getMontantTotalCreditApprouve());
             }
-            result = multiService.convertData(deviseSelectionnee);
-        } else {
-            result = service.convertData();
+
+            // Valeur par défaut pour l'affichage
+            result = new MoneyData(0.0, deviseSelectionnee);
+        }
+        // Pour les clients, nous récupérons leur solde directement depuis la base de données
+        else if (user != null && compteDao != null) {
+            try {
+                // Récupérer le compte de l'utilisateur directement de la base de données
+                Compte compte = compteDao.findByUserId(user.getId());
+
+                if (compte != null) {
+                    double solde = compte.getSolde();
+                    System.out.println("SOLDE RÉCUPÉRÉ - User ID: " + user.getId() + ", Solde: " + solde + " EUR");
+
+                    // Convertir le solde selon la devise sélectionnée
+                    if (service instanceof MultiCurrencyService) {
+                        MultiCurrencyService multiService = (MultiCurrencyService) service;
+                        result = multiService.convertAmount(solde, deviseSelectionnee);
+                    } else {
+                        result = new MoneyData(solde, deviseSelectionnee);
+                    }
+                } else {
+                    System.err.println("COMPTE NON TROUVÉ - User ID: " + user.getId());
+                    result = new MoneyData(0.0, deviseSelectionnee);
+                }
+            } catch (Exception e) {
+                System.err.println("ERREUR lors de la récupération du solde: " + e.getMessage());
+                e.printStackTrace();
+                result = new MoneyData(0.0, deviseSelectionnee);
+            }
+        }
+        // Cas par défaut (utiliser le service de données en mémoire)
+        else {
+            // Convertir via le service standard
+            if (service instanceof MultiCurrencyService) {
+                MultiCurrencyService multiService = (MultiCurrencyService) service;
+                result = multiService.convertData(deviseSelectionnee);
+            } else {
+                result = service.convertData();
+            }
         }
 
         request.setAttribute("result", result);

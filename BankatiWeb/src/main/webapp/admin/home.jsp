@@ -1,5 +1,6 @@
 <%@page import="ma.bankati.model.data.MoneyData" pageEncoding="UTF-8" %>
 <%@page import="ma.bankati.model.users.User" %>
+<%@page import="ma.bankati.service.statsService.StatsService" %>
 <%
     var ctx = request.getContextPath();
 %>
@@ -11,10 +12,15 @@
     <link rel="stylesheet" href="<%= ctx %>/assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<%
-    var result  = (MoneyData) request.getAttribute("result");
-    var connectedUser    = (User) session.getAttribute("connectedUser");
+    <%
+    var connectedUser = (User) session.getAttribute("connectedUser");
     var appName = (String) application.getAttribute("AppName");
+    var statsService = (StatsService) application.getAttribute("statsService");
+
+    // Récupérer les statistiques
+    int nombreUtilisateurs = statsService != null ? statsService.getNombreUtilisateurs() : 0;
+    int nombreDemandesEnAttente = statsService != null ? statsService.getNombreDemandesEnAttente() : 0;
+    double montantTotalCreditApprouve = statsService != null ? statsService.getMontantTotalCreditApprouve() : 0.0;
 %>
 <body class="Optima bgBlue">
 
@@ -67,35 +73,79 @@
 </nav>
 
 <!-- ✅ CONTENU PRINCIPAL -->
-<div class="container w-50 bg-white mt-5 border border-light rounded-circle mb-5">
+<div class="container w-75 bg-white mt-5 border border-light rounded-3 mb-5 p-4">
     <div class="card-body text-center">
-        <h5 class="mt-4 mb-3">
-            Panneau d'administration <span class="text-primary font-weight-bold"><%= appName %></span>
-        </h5>
+        <h4 class="mt-4 mb-4 text-primary font-weight-bold">
+            Tableau de bord d'administration
+        </h4>
 
         <div class="row mt-4">
             <div class="col-md-6 mb-3">
-                <a href="<%= ctx %>/users" class="btn btn-outline-primary btn-lg w-100">
-                    <i class="bi bi-people-fill me-2"></i>
-                    Gérer les utilisateurs
-                </a>
+                <div class="card border-primary h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">Statistiques</h5>
+                        <ul class="list-group list-group-flush mt-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Nombre d'utilisateurs:</span>
+                                <span class="badge bg-primary rounded-pill"><%= nombreUtilisateurs %></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Demandes en attente:</span>
+                                <span class="badge bg-warning rounded-pill"><%= nombreDemandesEnAttente %></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Montant total des crédits approuvés:</span>
+                                <span class="badge bg-success rounded-pill"><%= montantTotalCreditApprouve %> DH</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
+
             <div class="col-md-6 mb-3">
-                <a href="<%= ctx %>/admin/credits" class="btn btn-outline-success btn-lg w-100">
-                    <i class="bi bi-credit-card-fill me-2"></i>
-                    Gérer les crédits
-                </a>
+                <div class="card border-primary h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">Actions rapides</h5>
+                        <div class="d-grid gap-2 mt-3">
+                            <a href="<%= ctx %>/users" class="btn btn-outline-primary">
+                                <i class="bi bi-people-fill me-2"></i>
+                                Gérer les utilisateurs
+                            </a>
+                            <a href="<%= ctx %>/admin/credits" class="btn btn-outline-success">
+                                <i class="bi bi-credit-card-fill me-2"></i>
+                                Gérer les crédits
+                            </a>
+                            <a href="<%= ctx %>/admin/credits/pending" class="btn btn-outline-warning">
+                                <i class="bi bi-clock-fill me-2"></i>
+                                Demandes en attente
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <hr class="my-4">
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">Résumé de l'activité</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-center">
+                            Bienvenue sur le tableau de bord administrateur de <span class="text-primary font-weight-bold"><%= appName %></span>.
+                            De ce panneau, vous pouvez gérer les utilisateurs, approuver ou refuser les demandes de crédit,
+                            et consulter les statistiques globales du système.
+                        </p>
 
-        <ul class="list-unstyled">
-            <li class="text-primary h5">
-                Solde du compte bancaire :
-                <span class="text-danger font-weight-bold"> <%= result %></span>
-            </li>
-        </ul>
+                        <div class="alert alert-warning" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            Vous avez <strong><%= nombreDemandesEnAttente %></strong> demande(s) de crédit en attente de traitement.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

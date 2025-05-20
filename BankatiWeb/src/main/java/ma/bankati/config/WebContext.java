@@ -13,6 +13,8 @@ import ma.bankati.service.authentification.IAuthentificationService;
 import ma.bankati.service.moneyServices.IMoneyService;
 import ma.bankati.service.creditService.ICreditService;
 import ma.bankati.service.compteService.ICompteService;
+import ma.bankati.service.statsService.StatsService;
+import ma.bankati.service.creditService.CreditServiceImpl;
 
 import java.util.Enumeration;
 import java.util.Properties;
@@ -168,6 +170,24 @@ public class WebContext implements ServletContextListener {
                         .newInstance(creditDao, compteService);
                 application.setAttribute("creditService", creditService);
                 System.out.println("CreditService loaded successfully");
+
+                // Injecter directement compteDao dans creditService
+                if (creditService instanceof CreditServiceImpl) {
+                    try {
+                        CreditServiceImpl impl = (CreditServiceImpl) creditService;
+                        impl.setCompteDao((ICompteDao) compteDao);
+                        System.out.println("CompteDao injecté directement dans CreditService");
+                    } catch (Exception e) {
+                        System.err.println("Erreur lors de l'injection de compteDao: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
+
+                // Load StatsService
+                System.out.println("Loading StatsService...");
+                StatsService statsService = new StatsService((IUserDao) userDao, (IDemandeCreditDao) creditDao);
+                application.setAttribute("statsService", statsService);
+                System.out.println("StatsService loaded successfully");
 
                 System.out.println("Application context loaded successfully");
             } catch (ClassNotFoundException e) {

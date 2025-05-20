@@ -33,24 +33,31 @@ public class MultiCurrencyService implements IMoneyService {
     @Override
     public MoneyData convertData() {
         double montantEuro = dao.fetchData(); // Montant en Euro
-        double montantConverti = 0.0;
+        return convertAmount(montantEuro, deviseSelectionnee);
+    }
 
-        switch (deviseSelectionnee) {
+    // Nouvelle méthode pour convertir un montant spécifique
+    public MoneyData convertAmount(double amount, Devise devise) {
+        double montantConverti;
+
+        switch (devise) {
             case €:
-                montantConverti = montantEuro * TAUX_EUR;
+                montantConverti = amount;
                 break;
             case $:
-                montantConverti = montantEuro * TAUX_USD;
+                montantConverti = amount * TAUX_USD;
                 break;
             case £:
-                montantConverti = montantEuro * TAUX_GBP;
+                montantConverti = amount * TAUX_GBP;
                 break;
             case Dh:
-                montantConverti = montantEuro * TAUX_DH;
+                montantConverti = amount * TAUX_DH;
                 break;
+            default:
+                montantConverti = amount;
         }
 
-        return new MoneyData(montantConverti, deviseSelectionnee);
+        return new MoneyData(montantConverti, devise);
     }
 
     public MoneyData convertData(Devise devise) {

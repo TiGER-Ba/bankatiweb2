@@ -1,40 +1,298 @@
-.bold {
-    font-weight: bold;
-}
-.red {
-    color : red;
-}
-.blue {
-    color : #7f7fd8;
-}
-.bgBlue{
-    background-color : #7f7fd8;
+:root {
+    --primary: #4e54c8;
+    --primary-light: #8f94fb;
+    --secondary: #28a745;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --info: #17a2b8;
+    --light: #f8f9fa;
+    --dark: #343a40;
+    --white: #ffffff;
+    --gray: #6c757d;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
 }
 
-.Optima {
-    font-family: Optima;
-}
 body {
-    padding-bottom: 70px;
-    font-family: Optima;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background-color: #f5f7fb;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-.footer-navbar {
-    background-color: #7f7fd8; /* #e6f0ff;*/
-    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
-    height: 60px;
+.content-wrapper {
+    flex: 1;
+    padding-bottom: 80px; /* Space for footer */
 }
 
-.logout-btn {
-    transition: all 0.3s ease;
+/* Modern header/navbar */
+.navbar {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light)) !important;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    padding: 1rem 2rem;
 }
 
-.logout-btn:hover {
-    background-color: #dc3545;
+.navbar-brand {
+    color: white !important;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    margin: 0 10px;
+    position: relative;
+    transition: var(--transition);
+}
+
+.nav-link:hover {
+    color: white !important;
+}
+
+.nav-link:after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: white;
+    transition: var(--transition);
+}
+
+.nav-link:hover:after {
+    width: 100%;
+}
+
+/* Card styling */
+.card {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: var(--white);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.25rem 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Buttons */
+.btn {
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    transition: var(--transition);
+    border: none;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(78, 84, 200, 0.4);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #5cb85c);
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #5cb85c, #28a745);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545, #f86778);
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #f86778, #dc3545);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+}
+
+.btn-outline-primary {
+    color: var(--primary);
+    border: 2px solid var(--primary);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary);
     color: white;
+    transform: translateY(-2px);
 }
 
-.text-center-th th {
-    text-align: center !important;
+/* Forms */
+.form-control {
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1rem;
+    border: 1px solid #e1e5eb;
+    transition: var(--transition);
 }
 
+.form-control:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(78, 84, 200, 0.25);
+}
+
+.input-group-text {
+    border-radius: var(--border-radius);
+    background-color: #f8f9fa;
+    border: 1px solid #e1e5eb;
+}
+
+/* Tables */
+.table {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+}
+
+.table thead th {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 1rem;
+    font-weight: 500;
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-color: #e1e5eb;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(78, 84, 200, 0.05);
+}
+
+/* Balance display */
+.balance-card {
+    background: linear-gradient(135deg, #4e54c8, #8f94fb);
+    color: white;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.balance-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 1rem 0;
+}
+
+.currency-selector {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+}
+
+/* Footer */
+.footer {
+    background-color: white;
+    padding: 1rem 0;
+    border-top: 1px solid #e1e5eb;
+    text-align: center;
+    margin-top: auto;
+}
+
+/* Badges */
+.badge {
+    padding: 0.5em 0.75em;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 75%;
+}
+
+.badge-success {
+    background-color: #28a745;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+}
+
+/* User dropdown */
+.user-dropdown {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    padding: 0.5rem 1rem;
+    color: white !important;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.user-dropdown:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .container {
+        max-width: 100%;
+        padding: 0 1rem;
+    }
+
+    .navbar {
+        padding: 0.5rem 1rem;
+    }
+
+    .balance-amount {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    .balance-amount {
+        font-size: 1.75rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+}

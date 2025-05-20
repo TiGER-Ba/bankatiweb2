@@ -55,39 +55,36 @@ public class WebContext implements ServletContextListener {
 
                         // Test a simple query to ensure complete connectivity
                         var stmt = connection.createStatement();
-                        var rs = stmt.executeQuery("SELECT @@VERSION");
+                        var rs = stmt.executeQuery("SELECT VERSION()");
                         if (rs.next()) {
-                            System.out.println("SQL Server Version: " + rs.getString(1));
+                            System.out.println("MySQL Version: " + rs.getString(1));
                         }
+
+                        // Load application context (services, DAOs, etc.)
+                        loadApplicationContext(application, properties);
 
                     } catch (Exception e) {
                         System.err.println("Database connection test failed: " + e.getMessage());
                         e.printStackTrace();
 
-                        // Optional: Stop application loading completely if DB connection fails
-                        // If you uncomment this, the application won't start if DB connection fails
-                        // throw new ServletException("Database connection failed", e);
-
-                        // Instead, we'll try to fall back to file-based DAOs if possible
-                        System.out.println("Attempting to fall back to file-based data access...");
-                        properties.setProperty("userDao", "ma.bankati.dao.userDao.fileDb.UserDao");
-                        properties.setProperty("creditDao", "ma.bankati.dao.creditDao.fileDb.DemandeCreditDao");
-                        properties.setProperty("compteDao", "ma.bankati.dao.compteDao.fileDb.CompteDao");
+                        // Stop application loading completely if DB connection fails
+                        // This ensures we're using only the database and not falling back to files
+                        throw new ServletException("Database connection failed. Application cannot start without a database connection.", e);
                     }
-
-                    // Load application context (services, DAOs, etc.)
-                    loadApplicationContext(application, properties);
 
                 } catch (ClassNotFoundException e) {
                     System.err.println("Failed to load JDBC driver: " + e.getMessage());
                     e.printStackTrace();
+                    throw new ServletException("Failed to load MySQL JDBC driver. Please check your classpath.", e);
                 }
             } catch (Exception e) {
                 System.err.println("Failed to load properties file: " + e.getMessage());
                 e.printStackTrace();
+                throw new RuntimeException("Critical error: Failed to load application.properties", e);
             }
         } else {
             System.err.println("Properties file not found!");
+            throw new RuntimeException("Critical error: application.properties file not found");
         }
 
         System.out.println("Application Started and context initialized");
@@ -99,7 +96,7 @@ public class WebContext implements ServletContextListener {
             String userDaoClassName = properties.getProperty("userDao");
             String creditDaoClassName = properties.getProperty("creditDao");
             String compteDaoClassName = properties.getProperty("compteDao");
-            String dataDaoClassName = "ma.bankati.dao.dataDao.fileDb.DataDao";
+            String dataDaoClassName = "ma.bankati.dao.dataDao.memoryDb.DataDao"; // Changed to memoryDb to avoid file dependency
             String moneyServClassName = "ma.bankati.service.moneyServices.MultiCurrencyService";
 
             System.out.println("Loading DAOs and services with classes:");
@@ -176,16 +173,20 @@ public class WebContext implements ServletContextListener {
             } catch (ClassNotFoundException e) {
                 System.err.println("Class not found: " + e.getMessage());
                 e.printStackTrace();
+                throw new RuntimeException("Failed to load required class: " + e.getMessage(), e);
             } catch (NoSuchMethodException e) {
                 System.err.println("Constructor not found: " + e.getMessage());
                 e.printStackTrace();
+                throw new RuntimeException("Failed to find constructor: " + e.getMessage(), e);
             } catch (Exception e) {
                 System.err.println("Error instantiating class: " + e.getMessage());
                 e.printStackTrace();
+                throw new RuntimeException("Failed to instantiate class: " + e.getMessage(), e);
             }
         } catch (Exception e) {
             System.err.println("Error initializing application context: " + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException("Failed to initialize application context", e);
         }
     }
 

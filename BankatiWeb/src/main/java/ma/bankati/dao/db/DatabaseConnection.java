@@ -15,6 +15,16 @@ public class DatabaseConnection {
         url = properties.getProperty("datasource.url");
         username = properties.getProperty("datasource.username");
         password = properties.getProperty("datasource.password");
+
+        try {
+            // Load the MySQL driver
+            Class.forName(properties.getProperty("datasource.driver"));
+            System.out.println("MySQL JDBC driver loaded successfully: " + properties.getProperty("datasource.driver"));
+        } catch (ClassNotFoundException e) {
+            System.err.println("Failed to load MySQL JDBC driver: " + e.getMessage());
+            e.printStackTrace();
+        }
+
         initialized = true;
 
         System.out.println("Database connection parameters initialized");
@@ -28,10 +38,9 @@ public class DatabaseConnection {
             throw new SQLException("Database connection not initialized. Call initialize() first.");
         }
 
-        // Add connection debugging
         try {
             Connection conn = DriverManager.getConnection(url, username, password);
-            System.out.println("Successfully established database connection");
+            System.out.println("Successfully established MySQL database connection");
             return conn;
         } catch (SQLException e) {
             System.err.println("Failed to establish database connection:");
@@ -39,34 +48,7 @@ public class DatabaseConnection {
             System.err.println("Username: " + username);
             System.err.println("Error: " + e.getMessage());
 
-            // Try connecting without specifying a database, just to check SQL Server connectivity
-            try {
-                String baseUrl = url.substring(0, url.indexOf(";databaseName="));
-                baseUrl += ";encrypt=true;trustServerCertificate=true";
-                System.out.println("Trying to connect to SQL Server without specific database: " + baseUrl);
-                Connection conn = DriverManager.getConnection(baseUrl, username, password);
-                System.out.println("Connected to SQL Server, but not to the specific database. The database might not exist.");
-
-                // If we get here, SQL Server is running but the database doesn't exist
-                // Try to create the database
-                try {
-                    System.out.println("Attempting to create database...");
-                    var stmt = conn.createStatement();
-                    stmt.executeUpdate("IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'BankatiDB') BEGIN CREATE DATABASE BankatiDB END");
-                    System.out.println("Successfully created database BankatiDB or it already exists");
-                    conn.close();
-
-                    // Now try again with the original URL
-                    return DriverManager.getConnection(url, username, password);
-                } catch (SQLException createEx) {
-                    System.err.println("Failed to create database: " + createEx.getMessage());
-                    throw e; // Throw the original exception
-                }
-            } catch (SQLException baseEx) {
-                System.err.println("Also failed to connect to SQL Server without database: " + baseEx.getMessage());
-                System.err.println("SQL Server may not be running or accepting connections.");
-                throw e; // Throw the original exception
-            }
+            throw e;
         }
     }
 

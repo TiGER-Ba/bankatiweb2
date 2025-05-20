@@ -12,7 +12,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @WebServlet(urlPatterns = "/init-db", loadOnStartup = 1)
@@ -37,7 +40,6 @@ public class DatabaseInitServlet extends HttpServlet {
 
     private void initializeDatabase() throws Exception {
         // Read the initialization SQL script
-        // Modifier cette ligne pour corriger le chemin du script SQL
         InputStream is = getClass().getClassLoader().getResourceAsStream("sql/init-db.sql");
         if (is == null) {
             // Try alternate locations
@@ -59,24 +61,47 @@ public class DatabaseInitServlet extends HttpServlet {
         System.out.println("SQL script loaded successfully, length: " + sqlScript.length() + " characters");
 
         // Split the script into individual statements
-        String[] statements = sqlScript.split("GO|;");
-        System.out.println("Found " + statements.length + " SQL statements to execute");
+        // MySQL uses ; as delimiter
+        List<String> statements = new ArrayList<>();
+        StringBuilder currentStatement = new StringBuilder();
+
+        for (String line : sqlScript.split("\n")) {
+            // Skip comments
+            if (line.trim().startsWith("--") || line.trim().isEmpty()) {
+                continue;
+            }
+
+            currentStatement.append(line).append(" ");
+
+            if (line.trim().endsWith(";")) {
+                statements.add(currentStatement.toString());
+                currentStatement = new StringBuilder();
+            }
+        }
+
+        // Add the last statement if it doesn't end with ;
+        if (currentStatement.length() > 0) {
+            statements.add(currentStatement.toString());
+        }
+
+        System.out.println("Found " + statements.size() + " SQL statements to execute");
 
         // Execute each statement
-        try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement()) {
-
-            for (String sql : statements) {
-                sql = sql.trim();
-                if (!sql.isEmpty()) {
-                    try {
-                        System.out.println("Executing SQL statement: " + sql.substring(0, Math.min(50, sql.length())) + "...");
-                        stmt.executeUpdate(sql);
-                        System.out.println("SQL statement executed successfully");
-                    } catch (Exception e) {
-                        System.err.println("Error executing SQL statement: " + sql);
-                        System.err.println("Error: " + e.getMessage());
-                        // Continue with other statements
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            // Create a statement for executing SQL
+            try (Statement stmt = conn.createStatement()) {
+                for (String sql : statements) {
+                    sql = sql.trim();
+                    if (!sql.isEmpty()) {
+                        try {
+                            System.out.println("Executing SQL statement: " + sql.substring(0, Math.min(50, sql.length())) + "...");
+                            stmt.executeUpdate(sql);
+                            System.out.println("SQL statement executed successfully");
+                        } catch (SQLException e) {
+                            System.err.println("Error executing SQL statement: " + sql);
+                            System.err.println("Error: " + e.getMessage());
+                            // Continue with other statements - don't fail completely
+                        }
                     }
                 }
             }

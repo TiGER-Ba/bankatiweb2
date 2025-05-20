@@ -198,7 +198,6 @@ public class DemandeCreditDao implements IDemandeCreditDao {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, statut);
-            stmt.setString(1, statut);
             stmt.setString(2, commentaire);
             stmt.setDate(3, Date.valueOf(LocalDate.now()));
             stmt.setLong(4, id);

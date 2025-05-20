@@ -1,22 +1,20 @@
 package ma.bankati.web.controllers.userController;
 
-
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
-import java.net.URISyntaxException;
 
-@WebServlet(value = "/users/*" , loadOnStartup = 4)
+@WebServlet(value = "/users/*", loadOnStartup = 4)
 public class UserServlet extends HttpServlet {
 
     private UserController userController;
 
     @Override
     public void init() throws ServletException {
-        System.out.println("UserController créé et initialisé");
-            userController = new UserController();
-
+        System.out.println("UserServlet créé et initialisé");
+        userController = new UserController();
+        userController.init(getServletContext()); // Passer le contexte pour obtenir compteDao
     }
 
     @Override
@@ -45,6 +43,6 @@ public class UserServlet extends HttpServlet {
 
     @Override
     public void destroy() {
-        System.out.println("UserController détruit");
+        System.out.println("UserServlet détruit");
     }
 }
